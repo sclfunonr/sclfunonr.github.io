@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c" width="300" height="300"></canvas>
+
+<script>
+(async () => {
+  if (!navigator.gpu) {
+    alert("❌ WebGPU not supported");
+    return;
+  }
+
+  const canvas = document.getElementById("c");
+  const context = canvas.getContext("webgpu");
+
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter.requestDevice();
+
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({
+    device,
+    format,
+  });
+
+  const encoder = device.createCommandEncoder();
+  const pass = encoder.beginRenderPass({
+    colorAttachments: [{
+      view: context.getCurrentTexture().createView(),
+      loadOp: "clear",
+      clearValue: { r: 0, g: 0.5, b: 0.8, a: 1 },
+      storeOp: "store"
+    }]
+  });
+  pass.end();
+
+  device.queue.submit([encoder.finish()]);
+})();
+</script>
+</body>
+</html>
